@@ -10,7 +10,6 @@ export default function Home() {
       <Header />
       <Hero />
       <HowItWorks />
-      <ProudlyOpenSource />
       <Footer />
     </main>
   );
