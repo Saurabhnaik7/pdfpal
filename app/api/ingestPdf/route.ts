@@ -6,6 +6,7 @@ import { loadEmbeddingsModel } from '../utils/embeddings';
 import { loadVectorStore } from '../utils/vector_store';
 import { type MongoClient } from 'mongodb';
 import { put } from '@vercel/blob';
+import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   let mongoDbClient: MongoClient | null = null;
@@ -23,9 +24,18 @@ export async function POST(request: Request) {
 
     const fileName = file.name;
 
-    // Generate a unique userId if none is provided
-    // Note: This is a temporary solution - consider implementing proper authentication
-    const userId = `user_${Math.random().toString(36).substring(2, 11)}`;
+    // Get userId from cookie
+    const cookieStore = await cookies();
+    const userIdCookie = cookieStore.get('userId');
+
+    if (!userIdCookie || !userIdCookie.value) {
+      return NextResponse.json(
+        { error: 'User not authenticated' },
+        { status: 401 }
+      );
+    }
+
+    const userId = parseInt(userIdCookie.value, 10);
 
     const docAmount = await prisma.document.count({
       where: {
