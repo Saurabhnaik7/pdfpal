@@ -7,9 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        Int       @id @default(autoincrement())
+  username  String    @unique
+  password  String
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
 model Document {
-  id        String   @id @default(cuid())
-  userId    String
+  id        Int       @id @default(autoincrement())
+  userId    Int
   fileUrl   String
   fileName  String
   createdAt DateTime @default(now()) @map("created_at")
