@@ -96,7 +96,7 @@ export async function POST(request: Request) {
       const embeddings = loadEmbeddingsModel();
 
       const store = await loadVectorStore({
-        namespace: doc.id,
+        namespace: doc.id.toString(),
         embeddings,
       });
       const vectorstore = store.vectorstore;

@@ -1,15 +1,26 @@
-import { prisma } from '@/utils/prisma';
-import DocumentClient from './document-client';
+import { prisma } from "@/utils/prisma";
+import DocumentClient from "./document-client";
+import { notFound } from "next/navigation";
 
-export default async function Page({ params }: { params: { id: string } }) {
-  const currentDoc = await prisma.document.findFirst({
+export default async function Page({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const docId = Number(params.id);
+
+  if (Number.isNaN(docId)) {
+    notFound();
+  }
+
+  const currentDoc = await prisma.document.findUnique({
     where: {
-      id: params.id,
+      id: docId,
     },
   });
 
   if (!currentDoc) {
-    return <div>This document was not found</div>;
+    notFound();
   }
 
   return (
