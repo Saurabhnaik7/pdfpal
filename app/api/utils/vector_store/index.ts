@@ -45,6 +45,10 @@ export async function loadRetriever({
   if ('mongoDbClient' in store) {
     mongoDbClient = store.mongoDbClient;
   }
+  
+  console.log('[Retriever] Loading for chatId:', chatId);
+  console.log('[Retriever] Vector store type:', process.env.NEXT_PUBLIC_VECTORSTORE);
+  
   // For Mongo, we will use metadata filtering to separate documents.
   // For Pinecone, we will use namespaces, so no filter is necessary.
   const filter =
@@ -52,14 +56,18 @@ export async function loadRetriever({
       ? {
           preFilter: {
             docstore_document_id: {
-              $eq: chatId,
+              $eq: parseInt(chatId),
             },
           },
         }
       : undefined;
+  
+  // console.log('[Retriever] Filter:', JSON.stringify(filter, null, 2));
+  
   const retriever = vectorstore.asRetriever({
     filter,
     callbacks: callbacks as any,
+    k: 4, // Number of documents to retrieve
   });
   return {
     retriever,

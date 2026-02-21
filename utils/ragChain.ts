@@ -22,7 +22,7 @@ const historyAwarePrompt = ChatPromptTemplate.fromMessages([
 
 const ANSWER_SYSTEM_TEMPLATE = `You are a helpful AI assistant. Use the following pieces of context to answer the question at the end.
 If you don't know the answer, just say you don't know. DO NOT try to make up an answer.
-If the question is not related to the context, politely respond that you are tuned to only answer questions that are related to the context.
+If the question is not related to the context or if no context is provided, politely respond that you are tuned to only answer questions that are related to the context.
 
 <context>
 {context}
@@ -40,6 +40,7 @@ export async function createRAGChain(
   model: BaseLanguageModel,
   retriever: any,
 ): Promise<Runnable<{ input: string; chat_history: BaseMessage[] }, string>> {
+  console.log('[RAG] Creating RAG chain with history-aware retriever');
   // Create a chain that can rephrase incoming questions for the retriever,
   // taking previous chat history into account. Returns relevant documents.
   const historyAwareRetrieverChain = await createHistoryAwareRetriever({
@@ -60,6 +61,7 @@ export async function createRAGChain(
     combineDocsChain: documentChain,
   });
 
+  console.log('[RAG] Chain created successfully');
   // "Pick" the answer from the retrieval chain output object.
   return conversationalRetrievalChain.pick('answer') as any;
 }

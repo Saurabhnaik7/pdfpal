@@ -14,6 +14,8 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.7.18",
+    "@huggingface/inference": "^4.13.12",
+    "@langchain/cohere": "^1.0.3",
     "@langchain/community": "^0.0.50",
     "@langchain/core": "^1.1.17",
     "@langchain/groq": "^1.0.3",

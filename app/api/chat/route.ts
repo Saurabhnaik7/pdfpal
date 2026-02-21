@@ -33,6 +33,7 @@ const formatVercelMessages = (message: VercelChatMessage) => {
  * https://js.langchain.com/docs/guides/expression_language/cookbook#conversational-retrieval-chain
  */
 export async function POST(req: NextRequest) {
+  console.log('[Chat] API called');
   let mongoDbClient: MongoClient | undefined;
 
   try {
@@ -47,17 +48,26 @@ export async function POST(req: NextRequest) {
     const currentMessageContent = messages[messages.length - 1].content;
     const chatId = body.chatId;
 
+    console.log('[Chat] Processing message for chatId:', chatId, '- Message count:', messages.length);
+
     const model = new ChatGroq({
       model: 'llama-3.3-70b-versatile',
       temperature: 0,
       apiKey: process.env.GROQ_API_KEY,
     });
 
+    console.log('[Chat] Loading embeddings model...');
     const embeddings = loadEmbeddingsModel();
 
+    let retrievedDocuments: Document[] = [];
     let resolveWithDocuments: (value: Document[]) => void;
     const documentPromise = new Promise<Document[]>((resolve) => {
       resolveWithDocuments = resolve;
+      // Timeout after 5 seconds if callback never fires
+      setTimeout(() => {
+        console.log('[CHAT] Document retrieval timeout - no documents found');
+        resolve([]);
+      }, 5000);
     });
 
     const retrieverInfo = await loadRetriever({
@@ -68,7 +78,11 @@ export async function POST(req: NextRequest) {
           handleRetrieverEnd(documents) {
             // Extract retrieved source documents so that they can be displayed as sources
             // on the frontend.
-            resolveWithDocuments(documents);
+            console.log('[CHAT] Retrieved', documents?.length || 0, 'documents');
+            if (documents && documents.length > 0) {
+              retrievedDocuments = documents;
+            }
+            resolveWithDocuments(documents || []);
           },
         },
       ],
@@ -77,6 +91,7 @@ export async function POST(req: NextRequest) {
     const retriever = retrieverInfo.retriever;
     mongoDbClient = retrieverInfo.mongoDbClient;
 
+    console.log('[CHAT] Creating RAG chain for chatId:', chatId);
     const ragChain = await createRAGChain(model, retriever);
 
     const stream = await ragChain.stream({
@@ -85,6 +100,16 @@ export async function POST(req: NextRequest) {
     });
 
     const documents = await documentPromise;
+    
+    console.log('[CHAT] Final documents count:', documents?.length || 0);
+    
+    // If no documents were retrieved, return a helpful message
+    if (!documents || documents.length === 0) {
+      return NextResponse.json({
+        error: 'No relevant documents found. The PDF might still be processing, or there may be no embeddings for this document yet.',
+      }, { status: 404 });
+    }
+    
     const serializedSources = Buffer.from(
       JSON.stringify(
         documents.map((doc) => {
