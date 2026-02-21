@@ -60,9 +60,12 @@ export async function POST(request: Request) {
 
     console.log('[IngestPDF] Current document count:', docAmount);
 
-    if (docAmount > 3) {
+    const maxDocuments = parseInt(process.env.MAX_DOCUMENTS_PER_USER || '3', 10);
+    console.log('[IngestPDF] Max documents allowed:', maxDocuments);
+
+    if (docAmount >= maxDocuments) {
       return NextResponse.json({
-        error: 'You have reached the maximum number of documents',
+        error: `You have reached the maximum number of documents (${maxDocuments})`,
       });
     }
 

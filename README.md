@@ -73,6 +73,10 @@ A modern RAG (Retrieval-Augmented Generation) application that allows you to upl
    # Cohere API key for embeddings (1024 dimensions)
    COHERE_API_KEY="your_cohere_api_key_here"
 
+   # === Application Configuration ===
+   # Maximum number of PDF documents per user (default: 3)
+   MAX_DOCUMENTS_PER_USER=3
+
    # === Vercel Blob Storage ===
    BLOB_READ_WRITE_TOKEN="your_blob_token_here"
    ```
@@ -223,6 +227,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
   - Vercel Blob: 1GB storage (free tier)
 
 - **Optimization**:
+  - Adjust max documents per user: `MAX_DOCUMENTS_PER_USER` in `.env` (default: 3)
   - Adjust chunk size in [ingestPdf/route.ts](app/api/ingestPdf/route.ts) (currently 1000 chars)
   - Modify retrieval k parameter in [vector_store/index.ts](app/api/utils/vector_store/index.ts) (default 4 documents)
   - Temperature setting in [chat/route.ts](app/api/chat/route.ts) (currently 0 for deterministic responses)
