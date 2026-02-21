@@ -237,8 +237,14 @@ async function processEmbeddings(
 
     console.log('[IngestPDF:Background] Adding', splitDocs.length, 'documents to vector store...');
     // embed the PDF documents
-    await vectorstore.addDocuments(splitDocs);
-    console.log('[IngestPDF:Background] ✓ Successfully completed embedding for doc:', namespace);
+    try {
+      await vectorstore.addDocuments(splitDocs);
+      console.log('[IngestPDF:Background] ✓ Successfully added', splitDocs.length, 'documents to vector store');
+      console.log('[IngestPDF:Background] Document IDs set to:', splitDocs.map(d => d.metadata.docstore_document_id).join(', '));
+    } catch (addDocsError: any) {
+      console.error('[IngestPDF:Background] ✗ Error adding documents to vector store:', addDocsError.message);
+      throw addDocsError;
+    }
 
   } catch (error: any) {
     console.error('[IngestPDF:Background] ✗ Error processing embeddings:', error.message || error);

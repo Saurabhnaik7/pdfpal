@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       resolveWithDocuments = resolve;
       // Timeout after 5 seconds if callback never fires
       setTimeout(() => {
-        console.log('[CHAT] Document retrieval timeout - no documents found');
+        console.log('[Chat] ✗ Document retrieval timeout - no documents found');
         resolve([]);
       }, 5000);
     });
@@ -78,8 +78,10 @@ export async function POST(req: NextRequest) {
           handleRetrieverEnd(documents) {
             // Extract retrieved source documents so that they can be displayed as sources
             // on the frontend.
-            console.log('[CHAT] Retrieved', documents?.length || 0, 'documents');
+            console.log('[Chat] Retrieved', documents?.length || 0, 'documents');
             if (documents && documents.length > 0) {
+              console.log('[Chat] First document content preview:', documents[0].pageContent?.substring(0, 100));
+              console.log('[Chat] Document metadata:', documents.map(d => d.metadata));
               retrievedDocuments = documents;
             }
             resolveWithDocuments(documents || []);
@@ -91,7 +93,7 @@ export async function POST(req: NextRequest) {
     const retriever = retrieverInfo.retriever;
     mongoDbClient = retrieverInfo.mongoDbClient;
 
-    console.log('[CHAT] Creating RAG chain for chatId:', chatId);
+    console.log('[Chat] Creating RAG chain for chatId:', chatId);
     const ragChain = await createRAGChain(model, retriever);
 
     const stream = await ragChain.stream({
@@ -101,10 +103,11 @@ export async function POST(req: NextRequest) {
 
     const documents = await documentPromise;
     
-    console.log('[CHAT] Final documents count:', documents?.length || 0);
+    console.log('[Chat] ✓ Final documents count:', documents?.length || 0);
     
     // If no documents were retrieved, return a helpful message
     if (!documents || documents.length === 0) {
+      console.log('[Chat] ✗ No documents found for chatId:', chatId);
       return NextResponse.json({
         error: 'No relevant documents found. The PDF might still be processing, or there may be no embeddings for this document yet.',
       }, { status: 404 });

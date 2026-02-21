@@ -62,13 +62,15 @@ export async function loadRetriever({
         }
       : undefined;
   
-  // console.log('[Retriever] Filter:', JSON.stringify(filter, null, 2));
+  console.log('[Retriever] Filter:', JSON.stringify(filter, null, 2));
+  console.log('[Retriever] ChatId parsed as integer:', parseInt(chatId));
   
   const retriever = vectorstore.asRetriever({
     filter,
     callbacks: callbacks as any,
     k: 4, // Number of documents to retrieve
   });
+  console.log('[Retriever] ✓ Retriever created successfully');
   return {
     retriever,
     mongoDbClient,
